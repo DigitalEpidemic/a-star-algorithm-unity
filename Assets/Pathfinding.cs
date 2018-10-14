@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 public class Pathfinding : MonoBehaviour {
@@ -12,31 +13,39 @@ public class Pathfinding : MonoBehaviour {
     }
 
     void Update() {
-        FindPath(seeker.position, target.position);
+        if (Input.GetMouseButtonDown(0)) {
+            FindPath(seeker.position, target.position);
+        }
     }
 
     void FindPath(Vector3 startPos, Vector3 targetPos) {
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+
         Node startNode = grid.NodeFromWorldPoint(startPos);
         Node targetNode = grid.NodeFromWorldPoint(targetPos);
 
-        List<Node> openSet = new List<Node>(); // Set of nodes to be evaluated
+        //List<Node> openSet = new List<Node>(); // Set of nodes to be evaluated
+        Heap<Node> openSet = new Heap<Node>(grid.MaxSize); // Set of nodes to be evaluated
         HashSet<Node> closedSet = new HashSet<Node>(); // Set of nodes already evaluated
         openSet.Add(startNode);
 
         while (openSet.Count > 0) { // Loop until empty
-            Node node = openSet[0];
-            for (int i = 1; i < openSet.Count; i++) {
-                if (openSet[i].fCost < node.fCost || openSet[i].fCost == node.fCost) { // Unoptimized for now
-                    if (openSet[i].hCost < node.hCost) {
-                        node = openSet[i];
-                    }
-                }
-            }
-
-            openSet.Remove(node);
+            Node node = openSet.RemoveFirst(); // Optimized (3ms)
+            //Node node = openSet[0];
+            //for (int i = 1; i < openSet.Count; i++) { // Unoptimized for now (15ms)
+            //    if (openSet[i].fCost < node.fCost || openSet[i].fCost == node.fCost) {
+            //        if (openSet[i].hCost < node.hCost) {
+            //            node = openSet[i];
+            //        }
+            //    }
+            //}
+            //openSet.Remove(node);
             closedSet.Add(node);
 
             if (node == targetNode) { // Found path
+                sw.Stop();
+                print("Path found! " + sw.ElapsedMilliseconds + " ms");
                 RetracePath(startNode, targetNode);
                 return;
             }
@@ -54,6 +63,8 @@ public class Pathfinding : MonoBehaviour {
 
                     if (!openSet.Contains(neighbour)) {
                         openSet.Add(neighbour);
+                    } else {
+                        openSet.UpdateItem(neighbour);
                     }
                 }
             }

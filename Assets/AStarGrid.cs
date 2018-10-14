@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class AStarGrid : MonoBehaviour {
+    public bool onlyDisplayPathGizmos;
     public LayerMask unwalkableMask;
     public Vector2 gridWorldSize;
     public float nodeRadius;
@@ -16,6 +17,10 @@ public class AStarGrid : MonoBehaviour {
         gridSizeX = Mathf.RoundToInt(gridWorldSize.x / nodeDiameter);
         gridSizeY = Mathf.RoundToInt(gridWorldSize.y / nodeDiameter);
         CreateGrid();
+    }
+
+    public int MaxSize {
+        get { return gridSizeX * gridSizeY; }
     }
 
     void CreateGrid() {
@@ -66,21 +71,31 @@ public class AStarGrid : MonoBehaviour {
     void OnDrawGizmos() {
         Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
 
-        if (grid != null) {
-            foreach (Node n in grid) {
-                Gizmos.color = (n.walkable) ? Color.white : Color.red;
-                if (path != null) {
-                    if (path.Contains(n)) {
-                        Gizmos.color = Color.black;
-                    }
+        if (onlyDisplayPathGizmos) {
+            if (path != null) {
+                foreach (Node n in path) {
+                    Gizmos.color = Color.black;
+                    Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - 0.1f));
                 }
-                Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - 0.1f));
+            }
+        } else {
+
+            if (grid != null) {
+                foreach (Node n in grid) {
+                    Gizmos.color = (n.walkable) ? Color.white : Color.red;
+                    if (path != null) {
+                        if (path.Contains(n)) {
+                            Gizmos.color = Color.black;
+                        }
+                    }
+                    Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - 0.1f));
+                }
             }
         }
     }
 } // AStarGrid
 
-public class Node {
+public class Node : IHeapItem<Node> {
     public bool walkable;
     public Vector3 worldPosition;
     public int gridX;
@@ -89,6 +104,7 @@ public class Node {
     public int gCost;
     public int hCost;
     public Node parent;
+    int heapIndex;
 
     public Node(bool _walkable, Vector3 _worldPos, int _gridX, int _gridY) {
         walkable = _walkable;
@@ -99,6 +115,23 @@ public class Node {
 
     public int fCost {
         get { return gCost + hCost; }
+    }
+
+    public int HeapIndex {
+        get {
+            return heapIndex;
+        }
+        set {
+            heapIndex = value;
+        }
+    }
+
+    public int CompareTo(Node nodeToCompare) {
+        int compare = fCost.CompareTo(nodeToCompare.fCost);
+        if (compare== 0) {
+            compare = hCost.CompareTo(nodeToCompare.hCost);
+        }
+        return -compare;
     }
 
 } // Node
