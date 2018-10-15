@@ -1,5 +1,16 @@
-# a-star-algorithm-unity
-Creating the A* algorithm manually in Unity
+# A* Algorithm (Unity)
+Creating the A* algorithm manually in Unity with visuals to show the path that was found.
+
+# Information to Know About the Algorithm
+## Assumptions/Making Everything Easier
+- Assume distance between two nodes is 1 unit. (Left, right, up and down)
+- Distance diagonally is ~1.4 units. (Pythagorean Theorem)
+- To avoid decimals, multiply by 10. (Distances are now 10 between nodes and 14 diagonally)
+
+## Variables
+- **gCost:** Distance from starting node.
+- **hCost (Heuristic):** Distance from end node.
+- **fCost:** gCost + hCost.
 
 # Pseudocode
 ```
